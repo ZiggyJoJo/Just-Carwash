@@ -47,7 +47,7 @@ AddEventHandler('bt-polyzone:exit', function(name)
     for k, v in pairs(Config.CarWash) do
         if v.zone.name == name then
 			inCarwash = false
-			TriggerEvent('cd_drawtextui:HideUI')
+			lib.hideTextUI()
             break
         end
     end
@@ -63,7 +63,7 @@ AddEventHandler('just_carwash:enteredWash', function (price)
 			Citizen.Wait(0)
 			if IsPedSittingInAnyVehicle(PlayerPedId()) then 
 				if UIShown == false then
-					TriggerEvent('cd_drawtextui:ShowUI', 'show', "[E] Clean Vehicle for $"..Config.CleaningCost.."")
+					lib.showTextUI("[E] Clean Vehicle for $"..Config.CleaningCost.."", {icon = "fa-solid fa-car-wash"})
 					UIShown = true
 				end
 				if mycie == false then
@@ -82,7 +82,7 @@ AddEventHandler('just_carwash:enteredWash', function (price)
 				end
 			else 
 				UIShown = false
-				TriggerEvent('cd_drawtextui:HideUI')
+				lib.hideTextUI()
 			end
 		end
 	end)
@@ -106,7 +106,7 @@ AddEventHandler('just_carwash:success', function (price)
 	UseParticleFxAssetNextCall("core")
 	particles2  = StartParticleFxLoopedAtCoord("ent_amb_waterfall_splash_p", coords.x + 2, coords.y, coords.z, 0.0, 0.0, 0.0, 1.0, false, false, false, false)
 	if Config.UseMythicProgbar == true then 
-		TriggerEvent('cd_drawtextui:ShowUI', 'show', "[X] To Stop")
+		lib.showTextUI("[X] To Stop")
         TriggerEvent("mythic_progbar:client:progress", {
             name = "cleaning_vehicle",
             duration = (Config.CleaningTime * 1000),
@@ -133,19 +133,19 @@ AddEventHandler('just_carwash:success', function (price)
                     TriggerEvent("swt_notifications:Icon", "Your vehicle has been cleaned you filthy animal.","top-right",4000,"green-8","white",true,"mdi-car-wash")
                 end
                 UIShown = false
-				TriggerEvent('cd_drawtextui:HideUI')
+				lib.hideTextUI()
 				BeingWashed = false
 			else 
 				FreezeEntityPosition(car, false)
 				StopParticleFxLooped(particles, 0)
 				StopParticleFxLooped(particles2, 0)
 				UIShown = false
-				TriggerEvent('cd_drawtextui:HideUI')
+				lib.hideTextUI()
 				BeingWashed = false
             end
         end)
     else
-		TriggerEvent('cd_drawtextui:ShowUI', 'show', "[E] To Stop")
+		lib.showTextUI("[E] To Stop")
 		timer = Config.CleaningTime
 		timer2 = true
 		Citizen.CreateThread(function()
@@ -170,7 +170,7 @@ AddEventHandler('just_carwash:success', function (price)
 					StopParticleFxLooped(particles2, 0)
 					timer2 = false
 					UIShown = false
-					TriggerEvent('cd_drawtextui:HideUI')
+					lib.hideTextUI()
 					BeingWashed = false
 				end
 			end
