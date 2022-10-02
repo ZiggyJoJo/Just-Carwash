@@ -1,13 +1,7 @@
 Config = {}
 
-Config.UseMythicProgbar = true -- Enable or dissable using mythic progressbar
-
-Config.UseMythicNotify = false -- Enable or dissable using mythic notify
-
 Config.CleaningTime = 15 -- Seconds
-
 Config.CleaningCost = 25 
-
 
 Config.CarWash = {
     {

@@ -1,12 +1,16 @@
-fx_version 'cerulean'
+--[[ FX Information ]]--
+fx_version   'cerulean'
+use_experimental_fxv2_oal 'yes'
+lua54        'yes'
+game         'gta5'
 
-game 'gta5'
+--[[ Resource Information ]]--
+name         'just_carwash'
+author       'ZiggyJoJo'
+version      '1.0'
+repository   'https://github.com/ZiggyJoJo/Just_Carwash'
+description ''
 
-lua54 'yes'
-
-author 'ZiggJoJo'
-
-version '1.0'
 
 shared_scripts {
     '@ox_lib/init.lua',

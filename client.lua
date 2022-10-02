@@ -7,9 +7,9 @@ local function Blips(coords, type, label, job, blipOptions)
     if job then return end
     if blip == false then return end
     local blip = AddBlipForCoord(coords)
-    SetBlipSprite(blip, blipOptions?.sprite or 357)
-    SetBlipScale(blip, blipOptions?.scale or 0.8)
-    SetBlipColour(blip, blipOptions?.colour ~= nil and blipOptions.colour or type == 'car' and Config.BlipColors.Car or type == 'boat' and Config.BlipColors.Boat or Config.BlipColors.Aircraft)
+    SetBlipSprite(blip, blipOptions.sprite or 357)
+    SetBlipScale(blip, blipOptions.scale or 0.8)
+    SetBlipColour(blip, blipOptions.colour ~= nil and blipOptions.colour or type == 'car' and Config.BlipColors.Car or type == 'boat' and Config.BlipColors.Boat or Config.BlipColors.Aircraft)
     SetBlipAsShortRange(blip, true)
     BeginTextCommandSetBlipName("STRING")
     AddTextComponentString("Carwash")
@@ -94,7 +94,6 @@ AddEventHandler('just_carwash:success', function (price)
 	local car = GetVehiclePedIsUsing(PlayerPedId())
 	local coords = GetEntityCoords(PlayerPedId())
 	mycie = true
-	FreezeEntityPosition(car, true)
 	if not HasNamedPtfxAssetLoaded("core") then
 		RequestNamedPtfxAsset("core")
 		while not HasNamedPtfxAssetLoaded("core") do
@@ -105,94 +104,44 @@ AddEventHandler('just_carwash:success', function (price)
 	particles  = StartParticleFxLoopedAtCoord("ent_amb_waterfall_splash_p", coords.x, coords.y, coords.z, 0.0, 0.0, 0.0, 1.0, false, false, false, false)
 	UseParticleFxAssetNextCall("core")
 	particles2  = StartParticleFxLoopedAtCoord("ent_amb_waterfall_splash_p", coords.x + 2, coords.y, coords.z, 0.0, 0.0, 0.0, 1.0, false, false, false, false)
-	if Config.UseMythicProgbar == true then 
-		lib.showTextUI("[X] To Stop")
-        TriggerEvent("mythic_progbar:client:progress", {
-            name = "cleaning_vehicle",
-            duration = (Config.CleaningTime * 1000),
-            label = "Cleaning Vehicle",
-            useWhileDead = false,
-            canCancel = true,
-            controlDisables = {
-                disableMovement = true,
-                disableCarMovement = true,
-                disableMouse = false,
-                disableCombat = true,
-            },
-        }, function(status)
-            if not status then
-				WashDecalsFromVehicle(car, 1.0)
-				SetVehicleDirtLevel(car)
-				FreezeEntityPosition(car, false)
-				StopParticleFxLooped(particles, 0)
-				StopParticleFxLooped(particles2, 0)
-                if Config.UseMythicNotify == true then 
-                    TriggerEvent('mythic_notify:client:SendAlert', {type = 'inform', text = '"Your vehicle has been cleaned you filthy animal.', length = 2500})
-                else
-                    -- ESX.ShowNotification('"Your vehicle has been cleaned you filthy animal.')
-                    TriggerEvent("swt_notifications:Icon", "Your vehicle has been cleaned you filthy animal.","top-right",4000,"green-8","white",true,"mdi-car-wash")
-                end
-                UIShown = false
-				lib.hideTextUI()
-				BeingWashed = false
-			else 
-				FreezeEntityPosition(car, false)
-				StopParticleFxLooped(particles, 0)
-				StopParticleFxLooped(particles2, 0)
-				UIShown = false
-				lib.hideTextUI()
-				BeingWashed = false
-            end
-        end)
-    else
-		lib.showTextUI("[E] To Stop")
-		timer = Config.CleaningTime
-		timer2 = true
-		Citizen.CreateThread(function()
-			while timer2 do
-				Citizen.Wait(0)
-				Citizen.Wait(1000)
-				if(timer > 0)then
-					timer = timer - 1
-				elseif (timer == 0) then
-					mycie = false
-					WashDecalsFromVehicle(car, 1.0)
-					SetVehicleDirtLevel(car)
-					FreezeEntityPosition(car, false)
-					if Config.UseMythicNotify == true then 
-						TriggerEvent('mythic_notify:client:SendAlert', {type = 'inform', text = 'Your vehicle has been cleaned you filthy animal.', length = 2500})
-					else
-						-- ESX.ShowNotification('Your vehicle has been cleaned you filthy animal.')
-						TriggerEvent("swt_notifications:Icon", "Your vehicle has been cleaned you filthy animal.","top-right",4000,"green-8","white",true,"mdi-car-wash")
-					end
-					--exports['mythic_notify']:SendAlert('inform', 'Your vehicle has been cleaned! For 25$')
-					StopParticleFxLooped(particles, 0)
-					StopParticleFxLooped(particles2, 0)
-					timer2 = false
-					UIShown = false
-					lib.hideTextUI()
-					BeingWashed = false
-				end
-			end
-		end)
-		Citizen.CreateThread(function()
-			local playerCoord = GetEntityCoords(PlayerPedId())
-			while mycie do
-				Citizen.Wait(0)
-				DrawText3D(playerCoord.x, playerCoord.y, playerCoord.z + 1, '~b~Cleaning... ~s~Time:~b~ '.. timer ..' ~s~seconds.')
-			end
-		end)
+	if lib.progressBar({
+		duration = (Config.CleaningTime * 1000),
+		label = "Cleaning Vehicle",
+		useWhileDead = false,
+		canCancel = true,
+		disable  = {
+			move = true,
+			car = true,
+		},
+	}) then
+		WashDecalsFromVehicle(car, 1.0)
+		SetVehicleDirtLevel(car)
+		StopParticleFxLooped(particles, 0)
+		StopParticleFxLooped(particles2, 0)
+		lib.notify({
+			title = "Your vehicle has been",
+			description = "You filthy animal",
+			status = "inform"
+		})
+		UIShown = false
+		lib.hideTextUI()
+		BeingWashed = false
+	else 
+		StopParticleFxLooped(particles, 0)
+		StopParticleFxLooped(particles2, 0)
+		UIShown = false
+		lib.hideTextUI()
+		BeingWashed = false
 	end
 end)
 
 RegisterNetEvent('just_carwash:notenoughmoney')
 AddEventHandler('just_carwash:notenoughmoney', function (moneyleft)
-	if Config.UseMythicNotify == true then 
-		TriggerEvent('mythic_notify:client:SendAlert', {type = 'inform', text = "You don't have enough money! You need: $" .. moneyleft .." more.", length = 2500})
-	else
-		-- ESX.ShowNotification("You don't have enough money! You need: $" .. moneyleft .." more.")
-		TriggerEvent("swt_notifications:Icon", "You don't have enough money! You need: $" .. moneyleft .." more.","top-right",4000,"green-8","white",true,"mdi-car-wash")
-	end
+	lib.notify({
+		title = "You don't have enough money!",
+		description = "You need: $" .. moneyleft,
+		status = "error"
+	})
 end)
 
 function DrawText3D(x, y, z, text)
